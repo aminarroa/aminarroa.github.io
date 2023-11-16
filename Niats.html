@@ -1558,7 +1558,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Dissenys niats</h1>
 <h4 class="author">Antonio Miñarro (<a href="mailto:aminarro@ub.edu" class="email">aminarro@ub.edu</a>)</h4>
-<h4 class="date">22 octubre, 2023</h4>
+<h4 class="date">16 novembre, 2023</h4>
 
 </div>
 
@@ -1958,6 +1958,9 @@ variància</h3>
 <div id="resolució-amb-r-de-lexemple-1" class="section level2" number="1.12">
 <h2><span class="header-section-number">1.12</span> Resolució amb R de
 l’exemple 1</h2>
+<div id="resolució-amb-aov" class="section level3" number="1.12.1">
+<h3><span class="header-section-number">1.12.1</span> Resolució amb
+aov</h3>
 <p>En aquest exemple considerem que el <strong>tractament</strong> és un
 factor fix i la <strong>gàbia</strong> un factor aleatori.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>glico</span></code></pre></div>
@@ -2171,36 +2174,106 @@ factor fix i la <strong>gàbia</strong> un factor aleatori.</p>
 donat que només tenim dos nivells del factor fix)</li>
 </ul>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">library</span>(agricolae)</span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">HSD.test</span>(glico.aov,<span class="st">&#39;tract&#39;</span>,<span class="at">console=</span>T)</span></code></pre></div>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">HSD.test</span>(glico<span class="sc">$</span>gli,glico<span class="sc">$</span>tract,<span class="at">DFerror=</span>taula[<span class="dv">2</span>,<span class="dv">1</span>],<span class="at">MSerror=</span>taula[<span class="dv">2</span>,<span class="dv">3</span>],<span class="at">console=</span>T,<span class="at">group=</span>F)</span></code></pre></div>
 <pre><code>## 
-## Study: glico.aov ~ &quot;tract&quot;
+## Study: glico$gli ~ glico$tract
 ## 
-## HSD Test for gli 
+## HSD Test for glico$gli 
 ## 
-## Mean Square Error:  0.00615 
+## Mean Square Error:  0.009461111 
 ## 
-## tract,  means
+## glico$tract,  means
 ## 
-##               gli        std r  Min  Max
+##         glico.gli        std r  Min  Max
 ## Control 0.1577778 0.07512952 9 0.09 0.30
 ## Estres  0.5288889 0.09116530 9 0.39 0.65
 ## 
-## Alpha: 0.05 ; DF Error: 12 
-## Critical Value of Studentized Range: 3.081307 
+## Alpha: 0.05 ; DF Error: 4 
+## Critical Value of Studentized Range: 3.926503 
 ## 
-## Minimun Significant Difference: 0.08054734 
+## Comparison between treatments means
 ## 
-## Treatments with the same letter are not significantly different.
+##                  difference pvalue signif.        LCL        UCL
+## Control - Estres -0.3711111 0.0013      ** -0.4984191 -0.2438031</code></pre>
+<p>Noteu que fem servir el terme d’error correcte i no la versió per
+defecte</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">HSD.test</span>(glico.aov,<span class="st">&#39;tract&#39;</span>,<span class="at">console=</span>T,<span class="at">group=</span>F)</span></code></pre></div>
+<div id="resolució-alternativa-en-cas-de-disseny-balancejat" class="section level4" number="1.12.1.1">
+<h4><span class="header-section-number">1.12.1.1</span> Resolució
+alternativa en cas de disseny balancejat</h4>
+<p><strong>Si tenim el mateix número de rèpliques a cada nivell del
+factor niat</strong> és possible fer l’anàlisi agregant les dades en
+cada nivell del factor niat (calculant el promig de les observacions
+dintre de cada nivell) i fer un ANOVA d’un factor comparant els nivells
+del factor al capdamunt de la jerarquia. El resultat del test serà
+equivalent.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>gabia<span class="ot">&lt;-</span><span class="fu">gl</span>(<span class="dv">6</span>,<span class="dv">3</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>promig<span class="ot">&lt;-</span><span class="fu">aggregate</span>(glico<span class="sc">$</span>gli,<span class="fu">list</span>(gabia),mean)</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>tract<span class="ot">&lt;-</span><span class="fu">as.factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&#39;Estres&#39;</span>,<span class="st">&#39;Control&#39;</span>),<span class="at">each=</span><span class="dv">3</span>))</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>dades<span class="ot">&lt;-</span><span class="fu">data.frame</span>(tract,<span class="at">gli=</span>promig<span class="sc">$</span>x)</span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>dades.aov<span class="ot">&lt;-</span><span class="fu">aov</span>(gli<span class="sc">~</span>tract,dades)</span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a><span class="fu">anova</span>(dades.aov)</span></code></pre></div>
+<div class="kable-table">
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Df</th>
+<th align="right">Sum Sq</th>
+<th align="right">Mean Sq</th>
+<th align="right">F value</th>
+<th align="right">Pr(&gt;F)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">tract</td>
+<td align="right">1</td>
+<td align="right">0.2065852</td>
+<td align="right">0.2065852</td>
+<td align="right">65.50558</td>
+<td align="right">0.0012666</td>
+</tr>
+<tr class="even">
+<td align="left">Residuals</td>
+<td align="right">4</td>
+<td align="right">0.0126148</td>
+<td align="right">0.0031537</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">HSD.test</span>(dades.aov,<span class="st">&#39;tract&#39;</span>,<span class="at">console=</span>T,<span class="at">group=</span>F)</span></code></pre></div>
+<pre><code>## 
+## Study: dades.aov ~ &quot;tract&quot;
 ## 
-##               gli groups
-## Estres  0.5288889      a
-## Control 0.1577778      b</code></pre>
-<div id="resolució-amb-el-package-mixlm" class="section level4" number="1.12.0.1">
-<h4><span class="header-section-number">1.12.0.1</span> Resolució amb el
-package <em>mixlm</em></h4>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">library</span>(mixlm)</span>
-<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>glico.aov<span class="ot">&lt;-</span><span class="fu">lm</span>(gli<span class="sc">~</span>tract<span class="sc">+</span><span class="fu">r</span>(gabia) <span class="sc">%in%</span> tract, glico)</span>
-<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="fu">Anova</span>(glico.aov,<span class="at">type=</span><span class="st">&#39;III&#39;</span>)</span></code></pre></div>
+## HSD Test for gli 
+## 
+## Mean Square Error:  0.003153704 
+## 
+## tract,  means
+## 
+##               gli        std r       Min  Max
+## Control 0.1577778 0.07313103 3 0.1000000 0.24
+## Estres  0.5288889 0.03097191 3 0.4933333 0.55
+## 
+## Alpha: 0.05 ; DF Error: 4 
+## Critical Value of Studentized Range: 3.926503 
+## 
+## Comparison between treatments means
+## 
+##                  difference pvalue signif.        LCL        UCL
+## Control - Estres -0.3711111 0.0013      ** -0.4984191 -0.2438031</code></pre>
+</div>
+</div>
+<div id="resolució-amb-el-package-mixlm" class="section level3" number="1.12.2">
+<h3><span class="header-section-number">1.12.2</span> Resolució amb el
+package <em>mixlm</em></h3>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">library</span>(mixlm)</span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>glico.aov<span class="ot">&lt;-</span><span class="fu">lm</span>(gli<span class="sc">~</span>tract<span class="sc">+</span><span class="fu">r</span>(gabia) <span class="sc">%in%</span> tract, glico)</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="fu">Anova</span>(glico.aov,<span class="at">type=</span><span class="st">&#39;III&#39;</span>)</span></code></pre></div>
 <pre><code>## Analysis of variance (unrestricted model)
 ## Response: gli
 ##             Mean Sq Sum Sq Df F value Pr(&gt;F)
@@ -2219,17 +2292,17 @@ package <em>mixlm</em></h4>
 ## tract:gabia  (3) + 3 (2)         
 ## Residuals    (3)</code></pre>
 </div>
-<div id="resolució-amb-lmerlme4-opcional" class="section level3" number="1.12.1">
-<h3><span class="header-section-number">1.12.1</span> Resolució amb
+<div id="resolució-amb-lmerlme4-opcional" class="section level3" number="1.12.3">
+<h3><span class="header-section-number">1.12.3</span> Resolució amb
 lmer(lme4) (Opcional)</h3>
 <p>Primer hem de crear un factor gàbia inequívocament determinat,
 <strong>aquí es obligatoria indicar les gàbies des de 1 fins a
 6</strong></p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>gli<span class="ot">&lt;-</span><span class="fu">c</span>(<span class="fl">0.55</span>,<span class="fl">0.61</span>,<span class="fl">0.49</span>,<span class="fl">0.59</span>,<span class="fl">0.65</span>,<span class="fl">0.39</span>,<span class="fl">0.48</span>,<span class="fl">0.59</span>,<span class="fl">0.41</span>,<span class="fl">0.11</span>,<span class="fl">0.20</span>,<span class="fl">0.09</span>,<span class="fl">0.12</span>,<span class="fl">0.09</span>,<span class="fl">0.09</span>,<span class="fl">0.22</span>,<span class="fl">0.30</span>,<span class="fl">0.20</span>)</span>
-<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>tract<span class="ot">&lt;-</span><span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&#39;Estres&#39;</span>,<span class="st">&#39;Control&#39;</span>),<span class="at">each=</span><span class="dv">9</span>))</span>
-<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>gabia<span class="ot">&lt;-</span><span class="fu">factor</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>,<span class="at">each=</span><span class="dv">3</span>))</span>
-<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>glico<span class="ot">&lt;-</span><span class="fu">data.frame</span>(gli,tract,gabia)</span>
-<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a>glico</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a>gli<span class="ot">&lt;-</span><span class="fu">c</span>(<span class="fl">0.55</span>,<span class="fl">0.61</span>,<span class="fl">0.49</span>,<span class="fl">0.59</span>,<span class="fl">0.65</span>,<span class="fl">0.39</span>,<span class="fl">0.48</span>,<span class="fl">0.59</span>,<span class="fl">0.41</span>,<span class="fl">0.11</span>,<span class="fl">0.20</span>,<span class="fl">0.09</span>,<span class="fl">0.12</span>,<span class="fl">0.09</span>,<span class="fl">0.09</span>,<span class="fl">0.22</span>,<span class="fl">0.30</span>,<span class="fl">0.20</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a>tract<span class="ot">&lt;-</span><span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&#39;Estres&#39;</span>,<span class="st">&#39;Control&#39;</span>),<span class="at">each=</span><span class="dv">9</span>))</span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a>gabia<span class="ot">&lt;-</span><span class="fu">factor</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>,<span class="at">each=</span><span class="dv">3</span>))</span>
+<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a>glico<span class="ot">&lt;-</span><span class="fu">data.frame</span>(gli,tract,gabia)</span>
+<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a>glico</span></code></pre></div>
 <div class="kable-table">
 <table>
 <thead>
@@ -2334,10 +2407,10 @@ lmer(lme4) (Opcional)</h3>
 </table>
 </div>
 <p>Després ajustem el model</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
-<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="fu">library</span>(lmerTest)</span>
-<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>glico.lmer<span class="ot">&lt;-</span><span class="fu">lmer</span>(gli<span class="sc">~</span>tract<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>gabia),glico)</span>
-<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="fu">summary</span>(glico.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a><span class="fu">library</span>(lmerTest)</span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a>glico.lmer<span class="ot">&lt;-</span><span class="fu">lmer</span>(gli<span class="sc">~</span>tract<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>gabia),glico)</span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="fu">summary</span>(glico.lmer)</span></code></pre></div>
 <pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
 ## lmerModLmerTest]
 ## Formula: gli ~ tract + (1 | gabia)
@@ -2365,7 +2438,7 @@ lmer(lme4) (Opcional)</h3>
 ## Correlation of Fixed Effects:
 ##        (Intr)
 ## tract1 0.000</code></pre>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="fu">anova</span>(glico.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">anova</span>(glico.lmer)</span></code></pre></div>
 <div class="kable-table">
 <table>
 <thead>
@@ -2392,13 +2465,13 @@ lmer(lme4) (Opcional)</h3>
 </tbody>
 </table>
 </div>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">confint</span>(glico.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="fu">confint</span>(glico.lmer)</span></code></pre></div>
 <pre><code>##                   2.5 %      97.5 %
 ## .sig01       0.00000000  0.08054617
 ## .sigma       0.05508974  0.11360729
 ## (Intercept)  0.29990807  0.38675861
 ## tract1      -0.22898082 -0.14213027</code></pre>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="fu">ranova</span>(glico.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="fu">ranova</span>(glico.lmer)</span></code></pre></div>
 <div class="kable-table">
 <table>
 <colgroup>
@@ -2443,10 +2516,10 @@ lmer(lme4) (Opcional)</h3>
 </tbody>
 </table>
 </div>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">fixef</span>(glico.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="fu">fixef</span>(glico.lmer)</span></code></pre></div>
 <pre><code>## (Intercept)      tract1 
 ##   0.3433333  -0.1855556</code></pre>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="fu">ranef</span>(glico.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a><span class="fu">ranef</span>(glico.lmer)</span></code></pre></div>
 <pre><code>## $gabia
 ##    (Intercept)
 ## 1  0.007388269
@@ -2490,9 +2563,9 @@ grups</strong>, cadascun dels grups es conserva a una de les 2
 temperatures.</p>
 <p>– Les dades es troben al fitxer
 <strong>dades/Exemple_2.1.csv</strong></p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a>sensi1 <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&#39;../dades/Exemple_2.1.csv&#39;</span>,<span class="at">sep=</span><span class="st">&quot;;&quot;</span>,<span class="at">header=</span><span class="cn">TRUE</span>, <span class="at">dec=</span><span class="st">&quot;,&quot;</span>, <span class="at">na.strings=</span><span class="st">&#39; &#39;</span>,<span class="at">stringsAsFactors =</span> T)</span>
-<span id="cb30-2"><a href="#cb30-2" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) sensi1[,i]<span class="ot">&lt;-</span><span class="fu">as.factor</span>(sensi1[,i])</span>
-<span id="cb30-3"><a href="#cb30-3" tabindex="-1"></a><span class="fu">head</span>(sensi1,<span class="dv">18</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a>sensi1 <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&#39;../dades/Exemple_2.1.csv&#39;</span>,<span class="at">sep=</span><span class="st">&quot;;&quot;</span>,<span class="at">header=</span><span class="cn">TRUE</span>, <span class="at">dec=</span><span class="st">&quot;,&quot;</span>, <span class="at">na.strings=</span><span class="st">&#39; &#39;</span>,<span class="at">stringsAsFactors =</span> T)</span>
+<span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) sensi1[,i]<span class="ot">&lt;-</span><span class="fu">as.factor</span>(sensi1[,i])</span>
+<span id="cb34-3"><a href="#cb34-3" tabindex="-1"></a><span class="fu">head</span>(sensi1,<span class="dv">18</span>)</span></code></pre></div>
 <div class="kable-table">
 <table>
 <thead>
@@ -2631,9 +2704,9 @@ mostres en total analitzades) i es mesura la sensibilitat. Un valor més
 alt de la resposta indica per tant un millor resultat.</p>
 <p>– Les dades es troben al fitxer
 <strong>dades/Exemple_2.2.csv</strong></p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a>sensi2 <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&#39;../dades/Exemple_2.2.csv&#39;</span>,<span class="at">sep=</span><span class="st">&quot;;&quot;</span>,<span class="at">header=</span><span class="cn">TRUE</span>, <span class="at">dec=</span><span class="st">&quot;,&quot;</span>, <span class="at">na.strings=</span><span class="st">&#39; &#39;</span>,<span class="at">stringsAsFactors =</span> T)</span>
-<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) sensi2[,i]<span class="ot">&lt;-</span><span class="fu">as.factor</span>(sensi2[,i])</span>
-<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a><span class="fu">head</span>(sensi2,<span class="dv">18</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a>sensi2 <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&#39;../dades/Exemple_2.2.csv&#39;</span>,<span class="at">sep=</span><span class="st">&quot;;&quot;</span>,<span class="at">header=</span><span class="cn">TRUE</span>, <span class="at">dec=</span><span class="st">&quot;,&quot;</span>, <span class="at">na.strings=</span><span class="st">&#39; &#39;</span>,<span class="at">stringsAsFactors =</span> T)</span>
+<span id="cb35-2"><a href="#cb35-2" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) sensi2[,i]<span class="ot">&lt;-</span><span class="fu">as.factor</span>(sensi2[,i])</span>
+<span id="cb35-3"><a href="#cb35-3" tabindex="-1"></a><span class="fu">head</span>(sensi2,<span class="dv">18</span>)</span></code></pre></div>
 <div class="kable-table">
 <table>
 <thead>
@@ -2772,9 +2845,9 @@ mostres en total analitzades) i es mesura la sensibilitat. Un valor més
 alt de la resposta indica per tant un millor resultat.</p>
 <p>– Les dades es troben al fitxer
 <strong>dades/Exemple_2.3.csv</strong></p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a>sensi3 <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&#39;../dades/Exemple_2.3.csv&#39;</span>,<span class="at">sep=</span><span class="st">&quot;;&quot;</span>,<span class="at">header=</span><span class="cn">TRUE</span>, <span class="at">dec=</span><span class="st">&quot;,&quot;</span>, <span class="at">na.strings=</span><span class="st">&#39; &#39;</span>,<span class="at">stringsAsFactors =</span> T)</span>
-<span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) sensi3[,i]<span class="ot">&lt;-</span><span class="fu">as.factor</span>(sensi3[,i])</span>
-<span id="cb32-3"><a href="#cb32-3" tabindex="-1"></a><span class="fu">head</span>(sensi3,<span class="dv">18</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a>sensi3 <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&#39;../dades/Exemple_2.3.csv&#39;</span>,<span class="at">sep=</span><span class="st">&quot;;&quot;</span>,<span class="at">header=</span><span class="cn">TRUE</span>, <span class="at">dec=</span><span class="st">&quot;,&quot;</span>, <span class="at">na.strings=</span><span class="st">&#39; &#39;</span>,<span class="at">stringsAsFactors =</span> T)</span>
+<span id="cb36-2"><a href="#cb36-2" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) sensi3[,i]<span class="ot">&lt;-</span><span class="fu">as.factor</span>(sensi3[,i])</span>
+<span id="cb36-3"><a href="#cb36-3" tabindex="-1"></a><span class="fu">head</span>(sensi3,<span class="dv">18</span>)</span></code></pre></div>
 <div class="kable-table">
 <table>
 <thead>
@@ -3239,16 +3312,16 @@ la taula seria <span class="math inline">\(F_A =
 l’exemple 2.1</h2>
 <div id="model-complet" class="section level3" number="1.17.1">
 <h3><span class="header-section-number">1.17.1</span> Model complet</h3>
-<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a>sensi1.aov <span class="ot">&lt;-</span> <span class="fu">aov</span>(resposta <span class="sc">~</span> reactiu <span class="sc">*</span> temperatura <span class="sc">+</span> lot <span class="sc">%in%</span> reactiu <span class="sc">+</span> (lot <span class="sc">%in%</span> reactiu)<span class="sc">:</span>temperatura, sensi1)  </span>
-<span id="cb33-2"><a href="#cb33-2" tabindex="-1"></a></span>
-<span id="cb33-3"><a href="#cb33-3" tabindex="-1"></a>taula<span class="ot">&lt;-</span><span class="fu">anova</span>(sensi1.aov)</span>
-<span id="cb33-4"><a href="#cb33-4" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">1</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">4</span>,<span class="dv">3</span>] <span class="co"># Modificació F factor fix A</span></span>
-<span id="cb33-5"><a href="#cb33-5" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">1</span>,<span class="dv">4</span>],taula[<span class="dv">1</span>,<span class="dv">1</span>],taula[<span class="dv">4</span>,<span class="dv">1</span>])</span>
-<span id="cb33-6"><a href="#cb33-6" tabindex="-1"></a>taula[<span class="dv">2</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">2</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">5</span>,<span class="dv">3</span>] <span class="co"># Modificació F factor fix B</span></span>
-<span id="cb33-7"><a href="#cb33-7" tabindex="-1"></a>taula[<span class="dv">2</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">2</span>,<span class="dv">4</span>],taula[<span class="dv">2</span>,<span class="dv">1</span>],taula[<span class="dv">5</span>,<span class="dv">1</span>])</span>
-<span id="cb33-8"><a href="#cb33-8" tabindex="-1"></a>taula[<span class="dv">3</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">3</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">5</span>,<span class="dv">3</span>] <span class="co"># Modificació F interacció AB</span></span>
-<span id="cb33-9"><a href="#cb33-9" tabindex="-1"></a>taula[<span class="dv">3</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">3</span>,<span class="dv">4</span>],taula[<span class="dv">3</span>,<span class="dv">1</span>],taula[<span class="dv">5</span>,<span class="dv">1</span>])</span>
-<span id="cb33-10"><a href="#cb33-10" tabindex="-1"></a>taula</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a>sensi1.aov <span class="ot">&lt;-</span> <span class="fu">aov</span>(resposta <span class="sc">~</span> reactiu <span class="sc">*</span> temperatura <span class="sc">+</span> lot <span class="sc">%in%</span> reactiu <span class="sc">+</span> (lot <span class="sc">%in%</span> reactiu)<span class="sc">:</span>temperatura, sensi1)  </span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a>taula<span class="ot">&lt;-</span><span class="fu">anova</span>(sensi1.aov)</span>
+<span id="cb37-4"><a href="#cb37-4" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">1</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">4</span>,<span class="dv">3</span>] <span class="co"># Modificació F factor fix A</span></span>
+<span id="cb37-5"><a href="#cb37-5" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">1</span>,<span class="dv">4</span>],taula[<span class="dv">1</span>,<span class="dv">1</span>],taula[<span class="dv">4</span>,<span class="dv">1</span>])</span>
+<span id="cb37-6"><a href="#cb37-6" tabindex="-1"></a>taula[<span class="dv">2</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">2</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">5</span>,<span class="dv">3</span>] <span class="co"># Modificació F factor fix B</span></span>
+<span id="cb37-7"><a href="#cb37-7" tabindex="-1"></a>taula[<span class="dv">2</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">2</span>,<span class="dv">4</span>],taula[<span class="dv">2</span>,<span class="dv">1</span>],taula[<span class="dv">5</span>,<span class="dv">1</span>])</span>
+<span id="cb37-8"><a href="#cb37-8" tabindex="-1"></a>taula[<span class="dv">3</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">3</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">5</span>,<span class="dv">3</span>] <span class="co"># Modificació F interacció AB</span></span>
+<span id="cb37-9"><a href="#cb37-9" tabindex="-1"></a>taula[<span class="dv">3</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">3</span>,<span class="dv">4</span>],taula[<span class="dv">3</span>,<span class="dv">1</span>],taula[<span class="dv">5</span>,<span class="dv">1</span>])</span>
+<span id="cb37-10"><a href="#cb37-10" tabindex="-1"></a>taula</span></code></pre></div>
 <div class="kable-table">
 <table>
 <colgroup>
@@ -3325,12 +3398,12 @@ l’exemple 2.1</h2>
 <div id="model-simplificat-1" class="section level3" number="1.17.2">
 <h3><span class="header-section-number">1.17.2</span> Model
 simplificat</h3>
-<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a>sensi1s.aov <span class="ot">&lt;-</span> <span class="fu">aov</span>(resposta <span class="sc">~</span> reactiu <span class="sc">*</span> temperatura <span class="sc">+</span> lot <span class="sc">%in%</span> reactiu , sensi1) </span>
-<span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a></span>
-<span id="cb34-3"><a href="#cb34-3" tabindex="-1"></a>taula<span class="ot">&lt;-</span><span class="fu">anova</span>(sensi1s.aov)</span>
-<span id="cb34-4"><a href="#cb34-4" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">1</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">4</span>,<span class="dv">3</span>] <span class="co"># Modificació F factor fix A</span></span>
-<span id="cb34-5"><a href="#cb34-5" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">1</span>,<span class="dv">4</span>],taula[<span class="dv">1</span>,<span class="dv">1</span>],taula[<span class="dv">4</span>,<span class="dv">1</span>])</span>
-<span id="cb34-6"><a href="#cb34-6" tabindex="-1"></a>taula</span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a>sensi1s.aov <span class="ot">&lt;-</span> <span class="fu">aov</span>(resposta <span class="sc">~</span> reactiu <span class="sc">*</span> temperatura <span class="sc">+</span> lot <span class="sc">%in%</span> reactiu , sensi1) </span>
+<span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a></span>
+<span id="cb38-3"><a href="#cb38-3" tabindex="-1"></a>taula<span class="ot">&lt;-</span><span class="fu">anova</span>(sensi1s.aov)</span>
+<span id="cb38-4"><a href="#cb38-4" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">1</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">4</span>,<span class="dv">3</span>] <span class="co"># Modificació F factor fix A</span></span>
+<span id="cb38-5"><a href="#cb38-5" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">1</span>,<span class="dv">4</span>],taula[<span class="dv">1</span>,<span class="dv">1</span>],taula[<span class="dv">4</span>,<span class="dv">1</span>])</span>
+<span id="cb38-6"><a href="#cb38-6" tabindex="-1"></a>taula</span></code></pre></div>
 <div class="kable-table">
 <table>
 <colgroup>
@@ -3399,9 +3472,9 @@ simplificat</h3>
 <div id="ajust-amb-lmer-del-model-simplificat-opcional" class="section level3" number="1.17.3">
 <h3><span class="header-section-number">1.17.3</span> Ajust amb lmer del
 model simplificat (OPCIONAL)</h3>
-<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a>sensi1<span class="sc">$</span>lot2<span class="ot">&lt;-</span><span class="fu">as.factor</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">6</span>,<span class="dv">6</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">6</span>,<span class="dv">6</span>))</span>
-<span id="cb35-2"><a href="#cb35-2" tabindex="-1"></a>sensi1.lmer<span class="ot">&lt;-</span><span class="fu">lmer</span>(resposta <span class="sc">~</span> reactiu <span class="sc">*</span> temperatura<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>lot2),sensi1)</span>
-<span id="cb35-3"><a href="#cb35-3" tabindex="-1"></a><span class="fu">summary</span>(sensi1.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a>sensi1<span class="sc">$</span>lot2<span class="ot">&lt;-</span><span class="fu">as.factor</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">6</span>,<span class="dv">6</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">6</span>,<span class="dv">6</span>))</span>
+<span id="cb39-2"><a href="#cb39-2" tabindex="-1"></a>sensi1.lmer<span class="ot">&lt;-</span><span class="fu">lmer</span>(resposta <span class="sc">~</span> reactiu <span class="sc">*</span> temperatura<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>lot2),sensi1)</span>
+<span id="cb39-3"><a href="#cb39-3" tabindex="-1"></a><span class="fu">summary</span>(sensi1.lmer)</span></code></pre></div>
 <pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
 ## lmerModLmerTest]
 ## Formula: resposta ~ reactiu * temperatura + (1 | lot2)
@@ -3437,7 +3510,7 @@ model simplificat (OPCIONAL)</h3>
 ## temperatur1  0.000  0.000  0.000              
 ## rct1:tmprt1  0.000  0.000  0.000  0.000       
 ## rct2:tmprt1  0.000  0.000  0.000  0.000 -0.500</code></pre>
-<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="fu">anova</span>(sensi1.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a><span class="fu">anova</span>(sensi1.lmer)</span></code></pre></div>
 <div class="kable-table">
 <table style="width:100%;">
 <colgroup>
@@ -3491,7 +3564,7 @@ model simplificat (OPCIONAL)</h3>
 </tbody>
 </table>
 </div>
-<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a><span class="fu">ranova</span>(sensi1.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" tabindex="-1"></a><span class="fu">ranova</span>(sensi1.lmer)</span></code></pre></div>
 <div class="kable-table">
 <table>
 <thead>
@@ -3527,7 +3600,7 @@ model simplificat (OPCIONAL)</h3>
 </tbody>
 </table>
 </div>
-<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a><span class="fu">ranef</span>(sensi1.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" tabindex="-1"></a><span class="fu">ranef</span>(sensi1.lmer)</span></code></pre></div>
 <pre><code>## $lot2
 ##    (Intercept)
 ## 1 -0.005969662
@@ -3538,7 +3611,7 @@ model simplificat (OPCIONAL)</h3>
 ## 6  0.039032403
 ## 
 ## with conditional variances for &quot;lot2&quot;</code></pre>
-<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a><span class="fu">fixef</span>(sensi1.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" tabindex="-1"></a><span class="fu">fixef</span>(sensi1.lmer)</span></code></pre></div>
 <pre><code>##           (Intercept)              reactiu1              reactiu2 
 ##             3.0111111            -0.3002778             0.4988889 
 ##          temperatura1 reactiu1:temperatura1 reactiu2:temperatura1 
@@ -3557,16 +3630,16 @@ model simplificat (OPCIONAL)</h3>
 <div id="resolució-amb-r-de-lexemple-2.2" class="section level2" number="1.18">
 <h2><span class="header-section-number">1.18</span> Resolució amb R de
 l’exemple 2.2</h2>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" tabindex="-1"></a>sensi2.aov<span class="ot">&lt;-</span><span class="fu">aov</span>(resposta <span class="sc">~</span> reactiu <span class="sc">*</span> dilucio <span class="sc">+</span> lot <span class="sc">%in%</span> (reactiu<span class="sc">:</span>dilucio),sensi2) </span>
-<span id="cb43-2"><a href="#cb43-2" tabindex="-1"></a></span>
-<span id="cb43-3"><a href="#cb43-3" tabindex="-1"></a>taula<span class="ot">&lt;-</span><span class="fu">anova</span>(sensi2.aov)</span>
-<span id="cb43-4"><a href="#cb43-4" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">1</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">4</span>,<span class="dv">3</span>] <span class="co"># Modificació F factor fix A</span></span>
-<span id="cb43-5"><a href="#cb43-5" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">1</span>,<span class="dv">4</span>],taula[<span class="dv">1</span>,<span class="dv">1</span>],taula[<span class="dv">4</span>,<span class="dv">1</span>])</span>
-<span id="cb43-6"><a href="#cb43-6" tabindex="-1"></a>taula[<span class="dv">2</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">2</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">4</span>,<span class="dv">3</span>] <span class="co"># Modificació F factor fix B</span></span>
-<span id="cb43-7"><a href="#cb43-7" tabindex="-1"></a>taula[<span class="dv">2</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">2</span>,<span class="dv">4</span>],taula[<span class="dv">2</span>,<span class="dv">1</span>],taula[<span class="dv">4</span>,<span class="dv">1</span>])</span>
-<span id="cb43-8"><a href="#cb43-8" tabindex="-1"></a>taula[<span class="dv">3</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">3</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">4</span>,<span class="dv">3</span>] <span class="co"># Modificació F interacció AB</span></span>
-<span id="cb43-9"><a href="#cb43-9" tabindex="-1"></a>taula[<span class="dv">3</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">3</span>,<span class="dv">4</span>],taula[<span class="dv">3</span>,<span class="dv">1</span>],taula[<span class="dv">4</span>,<span class="dv">1</span>])</span>
-<span id="cb43-10"><a href="#cb43-10" tabindex="-1"></a>taula</span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" tabindex="-1"></a>sensi2.aov<span class="ot">&lt;-</span><span class="fu">aov</span>(resposta <span class="sc">~</span> reactiu <span class="sc">*</span> dilucio <span class="sc">+</span> lot <span class="sc">%in%</span> (reactiu<span class="sc">:</span>dilucio),sensi2) </span>
+<span id="cb47-2"><a href="#cb47-2" tabindex="-1"></a></span>
+<span id="cb47-3"><a href="#cb47-3" tabindex="-1"></a>taula<span class="ot">&lt;-</span><span class="fu">anova</span>(sensi2.aov)</span>
+<span id="cb47-4"><a href="#cb47-4" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">1</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">4</span>,<span class="dv">3</span>] <span class="co"># Modificació F factor fix A</span></span>
+<span id="cb47-5"><a href="#cb47-5" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">1</span>,<span class="dv">4</span>],taula[<span class="dv">1</span>,<span class="dv">1</span>],taula[<span class="dv">4</span>,<span class="dv">1</span>])</span>
+<span id="cb47-6"><a href="#cb47-6" tabindex="-1"></a>taula[<span class="dv">2</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">2</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">4</span>,<span class="dv">3</span>] <span class="co"># Modificació F factor fix B</span></span>
+<span id="cb47-7"><a href="#cb47-7" tabindex="-1"></a>taula[<span class="dv">2</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">2</span>,<span class="dv">4</span>],taula[<span class="dv">2</span>,<span class="dv">1</span>],taula[<span class="dv">4</span>,<span class="dv">1</span>])</span>
+<span id="cb47-8"><a href="#cb47-8" tabindex="-1"></a>taula[<span class="dv">3</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">3</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">4</span>,<span class="dv">3</span>] <span class="co"># Modificació F interacció AB</span></span>
+<span id="cb47-9"><a href="#cb47-9" tabindex="-1"></a>taula[<span class="dv">3</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">3</span>,<span class="dv">4</span>],taula[<span class="dv">3</span>,<span class="dv">1</span>],taula[<span class="dv">4</span>,<span class="dv">1</span>])</span>
+<span id="cb47-10"><a href="#cb47-10" tabindex="-1"></a>taula</span></code></pre></div>
 <div class="kable-table">
 <table>
 <colgroup>
@@ -3634,9 +3707,9 @@ l’exemple 2.2</h2>
 <div id="ajust-amb-lmer-opcional" class="section level3" number="1.18.1">
 <h3><span class="header-section-number">1.18.1</span> Ajust amb lmer
 (OPCIONAL)</h3>
-<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" tabindex="-1"></a>sensi2<span class="sc">$</span>lot2<span class="ot">&lt;-</span><span class="fu">gl</span>(<span class="dv">12</span>,<span class="dv">3</span>)</span>
-<span id="cb44-2"><a href="#cb44-2" tabindex="-1"></a>sensi2.lmer<span class="ot">&lt;-</span><span class="fu">lmer</span>(resposta <span class="sc">~</span> reactiu <span class="sc">*</span> dilucio<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>lot2),sensi2)</span>
-<span id="cb44-3"><a href="#cb44-3" tabindex="-1"></a><span class="fu">summary</span>(sensi2.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" tabindex="-1"></a>sensi2<span class="sc">$</span>lot2<span class="ot">&lt;-</span><span class="fu">gl</span>(<span class="dv">12</span>,<span class="dv">3</span>)</span>
+<span id="cb48-2"><a href="#cb48-2" tabindex="-1"></a>sensi2.lmer<span class="ot">&lt;-</span><span class="fu">lmer</span>(resposta <span class="sc">~</span> reactiu <span class="sc">*</span> dilucio<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>lot2),sensi2)</span>
+<span id="cb48-3"><a href="#cb48-3" tabindex="-1"></a><span class="fu">summary</span>(sensi2.lmer)</span></code></pre></div>
 <pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
 ## lmerModLmerTest]
 ## Formula: resposta ~ reactiu * dilucio + (1 | lot2)
@@ -3672,7 +3745,7 @@ l’exemple 2.2</h2>
 ## dilucio1     0.000  0.000  0.000              
 ## react1:dlc1  0.000  0.000  0.000  0.000       
 ## react2:dlc1  0.000  0.000  0.000  0.000 -0.500</code></pre>
-<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" tabindex="-1"></a><span class="fu">anova</span>(sensi2.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" tabindex="-1"></a><span class="fu">anova</span>(sensi2.lmer)</span></code></pre></div>
 <div class="kable-table">
 <table>
 <colgroup>
@@ -3731,13 +3804,13 @@ l’exemple 2.2</h2>
 <div id="resolució-amb-r-de-lexemple-2.3" class="section level2" number="1.19">
 <h2><span class="header-section-number">1.19</span> Resolució amb R de
 l’exemple 2.3</h2>
-<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" tabindex="-1"></a>sensi3.aov<span class="ot">&lt;-</span><span class="fu">aov</span>(resposta<span class="sc">~</span>reactiu<span class="sc">+</span>preparacio <span class="sc">%in%</span> reactiu<span class="sc">+</span>lot <span class="sc">%in%</span> (reactiu<span class="sc">/</span>preparacio),sensi3)  </span>
-<span id="cb47-2"><a href="#cb47-2" tabindex="-1"></a>taula<span class="ot">&lt;-</span><span class="fu">anova</span>(sensi3.aov)</span>
-<span id="cb47-3"><a href="#cb47-3" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">1</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">3</span>,<span class="dv">3</span>]</span>
-<span id="cb47-4"><a href="#cb47-4" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">1</span>,<span class="dv">4</span>],taula[<span class="dv">1</span>,<span class="dv">1</span>],taula[<span class="dv">3</span>,<span class="dv">1</span>])</span>
-<span id="cb47-5"><a href="#cb47-5" tabindex="-1"></a>taula[<span class="dv">2</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">2</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">3</span>,<span class="dv">3</span>]</span>
-<span id="cb47-6"><a href="#cb47-6" tabindex="-1"></a>taula[<span class="dv">2</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">2</span>,<span class="dv">4</span>],taula[<span class="dv">2</span>,<span class="dv">1</span>],taula[<span class="dv">3</span>,<span class="dv">1</span>])</span>
-<span id="cb47-7"><a href="#cb47-7" tabindex="-1"></a>taula</span></code></pre></div>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" tabindex="-1"></a>sensi3.aov<span class="ot">&lt;-</span><span class="fu">aov</span>(resposta<span class="sc">~</span>reactiu<span class="sc">+</span>preparacio <span class="sc">%in%</span> reactiu<span class="sc">+</span>lot <span class="sc">%in%</span> (reactiu<span class="sc">/</span>preparacio),sensi3)  </span>
+<span id="cb51-2"><a href="#cb51-2" tabindex="-1"></a>taula<span class="ot">&lt;-</span><span class="fu">anova</span>(sensi3.aov)</span>
+<span id="cb51-3"><a href="#cb51-3" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">1</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">3</span>,<span class="dv">3</span>]</span>
+<span id="cb51-4"><a href="#cb51-4" tabindex="-1"></a>taula[<span class="dv">1</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">1</span>,<span class="dv">4</span>],taula[<span class="dv">1</span>,<span class="dv">1</span>],taula[<span class="dv">3</span>,<span class="dv">1</span>])</span>
+<span id="cb51-5"><a href="#cb51-5" tabindex="-1"></a>taula[<span class="dv">2</span>,<span class="dv">4</span>]<span class="ot">&lt;-</span>taula[<span class="dv">2</span>,<span class="dv">3</span>]<span class="sc">/</span>taula[<span class="dv">3</span>,<span class="dv">3</span>]</span>
+<span id="cb51-6"><a href="#cb51-6" tabindex="-1"></a>taula[<span class="dv">2</span>,<span class="dv">5</span>]<span class="ot">&lt;-</span><span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(taula[<span class="dv">2</span>,<span class="dv">4</span>],taula[<span class="dv">2</span>,<span class="dv">1</span>],taula[<span class="dv">3</span>,<span class="dv">1</span>])</span>
+<span id="cb51-7"><a href="#cb51-7" tabindex="-1"></a>taula</span></code></pre></div>
 <div class="kable-table">
 <table>
 <colgroup>
@@ -3797,10 +3870,10 @@ l’exemple 2.3</h2>
 <div id="ajust-amb-lmer-opcional-1" class="section level3" number="1.19.1">
 <h3><span class="header-section-number">1.19.1</span> Ajust amb lmer
 (OPCIONAL)</h3>
-<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" tabindex="-1"></a>sensi3<span class="sc">$</span>preparacio2<span class="ot">&lt;-</span><span class="fu">gl</span>(<span class="dv">6</span>,<span class="dv">6</span>)</span>
-<span id="cb48-2"><a href="#cb48-2" tabindex="-1"></a>sensi3<span class="sc">$</span>lot2<span class="ot">&lt;-</span><span class="fu">gl</span>(<span class="dv">12</span>,<span class="dv">3</span>)</span>
-<span id="cb48-3"><a href="#cb48-3" tabindex="-1"></a>sensi3.lmer<span class="ot">&lt;-</span><span class="fu">lmer</span>(resposta<span class="sc">~</span>reactiu<span class="sc">+</span>preparacio <span class="sc">%in%</span> reactiu<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>lot2),sensi3)</span>
-<span id="cb48-4"><a href="#cb48-4" tabindex="-1"></a><span class="fu">summary</span>(sensi3.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" tabindex="-1"></a>sensi3<span class="sc">$</span>preparacio2<span class="ot">&lt;-</span><span class="fu">gl</span>(<span class="dv">6</span>,<span class="dv">6</span>)</span>
+<span id="cb52-2"><a href="#cb52-2" tabindex="-1"></a>sensi3<span class="sc">$</span>lot2<span class="ot">&lt;-</span><span class="fu">gl</span>(<span class="dv">12</span>,<span class="dv">3</span>)</span>
+<span id="cb52-3"><a href="#cb52-3" tabindex="-1"></a>sensi3.lmer<span class="ot">&lt;-</span><span class="fu">lmer</span>(resposta<span class="sc">~</span>reactiu<span class="sc">+</span>preparacio <span class="sc">%in%</span> reactiu<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>lot2),sensi3)</span>
+<span id="cb52-4"><a href="#cb52-4" tabindex="-1"></a><span class="fu">summary</span>(sensi3.lmer)</span></code></pre></div>
 <pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
 ## lmerModLmerTest]
 ## Formula: resposta ~ reactiu + preparacio %in% reactiu + (1 | lot2)
@@ -3836,7 +3909,7 @@ l’exemple 2.3</h2>
 ## rct1:prprc1  0.000  0.000  0.000              
 ## rct2:prprc1  0.000  0.000  0.000  0.000       
 ## rct3:prprc1  0.000  0.000  0.000  0.000  0.000</code></pre>
-<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" tabindex="-1"></a><span class="fu">anova</span>(sensi3.lmer)</span></code></pre></div>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" tabindex="-1"></a><span class="fu">anova</span>(sensi3.lmer)</span></code></pre></div>
 <div class="kable-table">
 <table>
 <colgroup>
