@@ -3581,7 +3581,7 @@ tant, <strong>12 lots en total</strong>.</p>
 mostres en total analitzades) i es mesura la sensibilitat. Un valor més
 alt de la resposta indica per tant un millor resultat.</p>
 <p>– Les dades es troben al fitxer
-<strong>dades/Exemple_2.3.csv</strong></p>
+<strong>dades/Exemple_2.3.csv</strong>.</p>
 <div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" tabindex="-1"></a>sensi3 <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&#39;../dades/Exemple_2.3.csv&#39;</span>,<span class="at">sep=</span><span class="st">&quot;;&quot;</span>,<span class="at">header=</span><span class="cn">TRUE</span>, <span class="at">dec=</span><span class="st">&quot;,&quot;</span>, <span class="at">na.strings=</span><span class="st">&#39; &#39;</span>,<span class="at">stringsAsFactors =</span> T)</span>
 <span id="cb50-2"><a href="#cb50-2" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) sensi3[,i]<span class="ot">&lt;-</span><span class="fu">as.factor</span>(sensi3[,i])</span>
 <span id="cb50-3"><a href="#cb50-3" tabindex="-1"></a><span class="fu">head</span>(sensi3,<span class="dv">18</span>)</span></code></pre></div>
